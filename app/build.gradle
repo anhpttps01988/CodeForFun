@@ -1,0 +1,83 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "com.example.anhptt.codeforfun"
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    kapt { generateStubs = true }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    //noinspection GradleCompatible
+    api 'com.android.support:appcompat-v7:27.1.1'
+    api 'com.android.support.constraint:constraint-layout:1.1.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    api 'com.bluelinelabs:conductor:2.1.4'
+    //butterknife
+    api 'com.jakewharton:butterknife:8.8.1'
+    kapt 'com.jakewharton:butterknife-compiler:8.8.1'
+// If you want the components that go along with
+// Android's support libraries (currently just a PagerAdapter):
+    api 'com.bluelinelabs:conductor-support:2.1.4'
+// If you want RxJava lifecycle support:
+    api 'com.bluelinelabs:conductor-rxlifecycle:2.1.4'
+// If you want RxJava2 lifecycle support:
+    api 'com.bluelinelabs:conductor-rxlifecycle2:2.1.4'
+// If you want RxJava2 Autodispose support:
+    api 'com.bluelinelabs:conductor-autodispose:2.1.4'
+// If you want Controllers that are Lifecycle-aware (architecture components):
+    api 'com.bluelinelabs:conductor-archlifecycle:0.1.1'
+    api 'com.trello.rxlifecycle2:rxlifecycle:2.2.1'
+// If you want to bind to Android-specific lifecycles
+    api 'com.trello.rxlifecycle2:rxlifecycle-android:2.2.1'
+// If you want pre-written Activities and Fragments you can subclass as providers
+    api 'com.trello.rxlifecycle2:rxlifecycle-components:2.2.1'
+// If you want pre-written support preference Fragments you can subclass as providers
+    api 'com.trello.rxlifecycle2:rxlifecycle-components-preference:2.2.1'
+// If you want to use Navi for providers
+    api 'com.trello.rxlifecycle2:rxlifecycle-navi:2.2.1'
+// If you want to use Android Lifecycle for providers
+    api 'com.trello.rxlifecycle2:rxlifecycle-android-lifecycle:2.2.1'
+// If you want to use Kotlin syntax
+    api 'com.trello.rxlifecycle2:rxlifecycle-kotlin:2.2.1'
+// If you want to use Kotlin syntax with Android Lifecycle
+    api 'com.trello.rxlifecycle2:rxlifecycle-android-lifecycle-kotlin:2.2.1'
+    //retrofit
+    api 'com.squareup.retrofit2:retrofit:2.4.0'
+    //rx
+    api 'io.reactivex.rxjava2:rxandroid:2.0.2'
+    api 'io.reactivex.rxjava2:rxjava:2.1.16'
+    api 'com.android.support:design:27.1.1'
+    //okhttp
+    api 'com.squareup.okhttp3:okhttp:3.10.0'
+    api 'com.squareup.retrofit2:converter-gson:2.4.0'
+    api "com.jakewharton.retrofit:retrofit2-rxjava2-adapter:1.0.0"
+    api 'com.squareup.okhttp3:logging-interceptor:3.10.0'
+
+}
+//Ensure Kotlin will not be used in production code.
+afterEvaluate {
+    android.sourceSets.all { sourceSet ->
+        if (!sourceSet.name.startsWith('test') || !sourceSet.name.startsWith('androidTest')) {
+            sourceSet.kotlin.setSrcDirs([])
+        }
+    }
+}
