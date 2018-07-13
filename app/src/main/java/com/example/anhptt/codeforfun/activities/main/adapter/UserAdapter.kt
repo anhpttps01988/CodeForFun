@@ -1,5 +1,6 @@
 package com.example.anhptt.codeforfun.activities.main.adapter
 
+import android.annotation.SuppressLint
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,7 @@ import android.widget.TextView
 import butterknife.BindView
 import butterknife.ButterKnife
 import com.example.anhptt.codeforfun.R
+import com.example.anhptt.codeforfun.activities.data.response.UserDetailResponse
 import com.example.anhptt.codeforfun.activities.data.response.UserListResponse
 
 
@@ -18,18 +20,42 @@ class UserAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         val VIEW_LOADING = 1
     }
 
-    private var userList: MutableList<UserListResponse.User> = mutableListOf()
+    private var userList: MutableList<UserDetailResponse> = mutableListOf()
+    private var actionCallback: ActionCallback? = null
+    fun setActionCallback(actionCallback: ActionCallback) {
+        this.actionCallback = actionCallback
+    }
 
-    fun setItems(items: MutableList<UserListResponse.User>?) {
+    private fun getActionCallback(): ActionCallback? {
+        return this.actionCallback
+    }
+
+    fun setItems(items: MutableList<UserDetailResponse>?) {
         if (userList.size > 0) {
-            userList.removeAt(userList.size - 1)
-            notifyItemRemoved(userList.size)
+            if (userList[userList.size - 1].userId == null) {
+                userList.removeAt(userList.size - 1)
+                notifyItemRemoved(userList.size)
+            }
         }
         userList.addAll(items!!)
         notifyItemInserted(userList.size)
     }
 
-    fun clearItems(){
+    fun removeLoading() {
+        if (userList.size > 0) {
+            if (userList[userList.size - 1].userId == null) {
+                userList.removeAt(userList.size - 1)
+                notifyItemRemoved(userList.size)
+            }
+        }
+    }
+
+    fun setFooterLoading(item: UserDetailResponse) {
+        userList.add(userList.size, item)
+        notifyItemInserted(userList.size)
+    }
+
+    fun clearItems() {
         userList.clear()
         notifyDataSetChanged()
     }
@@ -42,23 +68,30 @@ class UserAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             return vh
         } else if (viewType == VIEW_LOADING) {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.loading_item, parent, false)
-            vh = ItemViewHolder(view)
+            vh = LoadingViewHolder(view)
             return vh
         }
         return null!!
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is ItemViewHolder) {
             val user = userList[position]
-            holder.name.text = "${user.userId}"
+            holder.name.text = "${user.businessName} ${user.userId}"
+            holder.des.text = "${user.description}"
+            holder.itemView.setOnClickListener {
+                if (getActionCallback() != null) {
+                    getActionCallback()?.onClick(position, user)
+                }
+            }
         } else if (holder is LoadingViewHolder) {
             //TODO
         }
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (userList.size != 0) VIEW_ITEM else VIEW_LOADING
+        return if (userList[position].userId == null) VIEW_LOADING else VIEW_ITEM
     }
 
     override fun getItemCount(): Int {
@@ -74,12 +107,17 @@ class UserAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
         @BindView(R.id.item_user)
         lateinit var name: TextView
+        @BindView(R.id.item_user_des)
+        lateinit var des: TextView
 
         init {
             ButterKnife.bind(this, itemView)
         }
+    }
+
+    interface ActionCallback {
+        fun onClick(position: Int, userDetail: UserDetailResponse)
     }
 }

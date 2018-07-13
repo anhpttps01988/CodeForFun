@@ -3,7 +3,7 @@ package com.example.anhptt.codeforfun.activities.data.response
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-class UserResponse : Serializable {
+class UserResponse : Serializable, BaseResponse() {
 
     @SerializedName("access_token")
     var accessToken: String? = null

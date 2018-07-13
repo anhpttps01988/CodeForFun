@@ -61,7 +61,7 @@ class APIClient {
 
             if (!TextUtils.isEmpty(LocalData.getApiKey(context))) {
                 val loginResponse = Gson().fromJson<UserResponse>(LocalData.getApiKey(context), UserResponse::class.java)
-                requestBuilder.addHeader("Authorization", loginResponse?.tokenType!!.trim() + " " + loginResponse?.accessToken!!.trim())
+                requestBuilder.addHeader("Authorization", loginResponse?.tokenType!!.trim() + " " + loginResponse.accessToken!!.trim())
             }
 
             val request = requestBuilder.build()
@@ -95,11 +95,9 @@ class APIClient {
             if (response?.code() == 401) {
                 synchronized(this) {
                     val currentToken = loginResponse?.accessToken
-
                     if (currentToken != null) {
                         fetchToken()
                     }
-
                     if (loginResponse?.accessToken != null) {
                         setAuthHeader(builder, loginResponse?.accessToken)
                         request = builder.build()
@@ -112,7 +110,7 @@ class APIClient {
 
         private fun setAuthHeader(builder: Request.Builder, token: String?) {
             if (token != null)
-                builder.header("Authorization", String.format("Bearer %s", token))
+                builder.header("Authorization", "${loginResponse?.tokenType} $token")
         }
 
         private fun fetchToken() {
@@ -123,30 +121,22 @@ class APIClient {
                     request.clientId = Constants.CLIENT_ID
                     request.grantType = Constants.REFRESH_TOKEN
                     request.refreshToken = refreshToken
-                    try {
-                        val response: Single<retrofit2.Response<UserResponse>> = getClient(context).create(ServiceAPI::class.java).refreshToken(request)
-                        val singleRx = response.flatMap { t: retrofit2.Response<UserResponse> ->
-                            (if (t.isSuccessful) {
-                                Single.just(t.body())
-                            } else {
-                                Single.error(Exception(t.errorBody()!!.string()))
-                            })
-                        }
-                        singleRx.subscribe { t1: UserResponse?, _: Throwable? ->
-                            if (t1 != null) {
-                                val json = Gson().toJson(t1)
-                                loginResponse = t1
-                                LocalData.saveLoginResponse(context, json)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        isRefresh = false
-                    }
+                    getClient(context).create(ServiceAPI::class.java).refreshToken(request)
+                            .flatMap { it -> (CustomFlapMap<UserResponse>().customSynchronousFlatmapHandler(it)) }
+                            .subscribe(this::onUserResponseSuccess, this::onUserResponseError)
+                    isRefresh = false
                 }
-                isRefresh = false
             }
         }
-    }
 
+        private fun onUserResponseSuccess(response: UserResponse) {
+            val json = Gson().toJson(response)
+            loginResponse = response
+            LocalData.saveLoginResponse(context, json)
+        }
+
+        private fun onUserResponseError(throwable: Throwable) {
+            Log.d("RefreshTokenError", throwable.message)
+        }
+    }
 }

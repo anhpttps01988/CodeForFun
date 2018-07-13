@@ -1,6 +1,7 @@
 package com.example.anhptt.codeforfun.activities.data.service
 
 import com.example.anhptt.codeforfun.activities.data.request.UserRequest
+import com.example.anhptt.codeforfun.activities.data.response.UserDetailResponse
 import com.example.anhptt.codeforfun.activities.data.response.UserListResponse
 import com.example.anhptt.codeforfun.activities.data.response.UserResponse
 import io.reactivex.Observable
@@ -18,4 +19,7 @@ interface ServiceAPI {
 
     @GET("/user")
     fun getUserList(@Query("page") page: Int): Observable<Response<UserListResponse>>
+
+    @GET("/user/{user_id}")
+    fun getUserDetail(@Path("user_id") userId: String): Observable<Response<UserDetailResponse>>
 }

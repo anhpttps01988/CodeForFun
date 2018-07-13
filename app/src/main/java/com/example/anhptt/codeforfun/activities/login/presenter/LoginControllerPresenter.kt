@@ -5,6 +5,7 @@ import com.example.anhptt.codeforfun.activities.data.local.LocalData
 import com.example.anhptt.codeforfun.activities.data.request.UserRequest
 import com.example.anhptt.codeforfun.activities.data.response.UserResponse
 import com.example.anhptt.codeforfun.activities.data.service.APIClient
+import com.example.anhptt.codeforfun.activities.data.service.CustomFlapMap
 import com.example.anhptt.codeforfun.activities.data.service.ServiceAPI
 import com.google.gson.Gson
 import io.reactivex.Observable
@@ -37,15 +38,7 @@ class LoginControllerPresenter constructor(context: Context, mView: LoginControl
     override fun login(userRequest: UserRequest) {
         view.showLoading()
         compositeDisposable?.add(apiService?.login(userRequest)!!
-                .flatMap { it: Response<UserResponse> ->
-                    (
-                            if (it.isSuccessful) {
-                                Observable.just(it.body())
-                            } else {
-                                Observable.error(Exception(it.errorBody()!!.string()))
-                            }
-                            )
-                }
+                .flatMap { it -> (CustomFlapMap<UserResponse>().customFlatmapHandler(it)) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(this::onLoginResponseSuccess, this::onLoginResponseError))
